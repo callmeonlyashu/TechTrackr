@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         // Replace with your actual ACR login server (e.g., techtrackr.azurecr.io)
-        ACR_SERVER = 'techtrackrregistry0c626d.azurecr.io'
+        ACR_SERVER = 'techtrackrsea.azurecr.io'
         IMAGE_NAME = 'techtrackr-app'
         TAG = "${env.BUILD_NUMBER}" // Uses the Jenkins build number as the version
     }
