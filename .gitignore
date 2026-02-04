@@ -25,5 +25,6 @@ htmlcov/
 .pytype/
 .ipynb_checkpoints/
 coverage.xml
+az-cli-*
 
     
