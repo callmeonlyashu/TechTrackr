@@ -26,13 +26,15 @@ pipeline {
         }
         stage('Deploy to QA') {
             steps {
-                // This block uses your Service Principal credentials stored in Jenkins
-                withCredentials([azureServicePrincipal('techtrackr-azure-sp')]) {
+                // Use the standard usernamePassword binding
+                withCredentials([usernamePassword(credentialsId: 'techtrackr-azure-sp', 
+                                                passwordVariable: 'AZURE_CLIENT_SECRET', 
+                                                usernameVariable: 'AZURE_CLIENT_ID')]) {
                     sh '''
-                    # Login to Azure
-                    az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZURE_TENANT_ID
+                    # Login using the bound variables + your Tenant ID (you can hardcode Tenant ID for now)
+                    az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t <YOUR_TENANT_ID>
                     
-                    # Deploy/Update the Container Instance
+                    # Deploy to ACI
                     az container create \
                     --resource-group rg-tracktech-qa-001 \
                     --name techtrackr-qa-app \
