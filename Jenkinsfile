@@ -24,6 +24,30 @@ pipeline {
                 }
             }
         }
+        stage('Deploy to QA') {
+            steps {
+                // This block uses your Service Principal credentials stored in Jenkins
+                withCredentials([azureServicePrincipal('techtrackr-azure-sp')]) {
+                    sh '''
+                    # Login to Azure
+                    az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZURE_TENANT_ID
+                    
+                    # Deploy/Update the Container Instance
+                    az container create \
+                    --resource-group rg-tracktech-qa-001 \
+                    --name techtrackr-qa-app \
+                    --image techtrackrsea.azurecr.io/techtrackr-app:${BUILD_NUMBER} \
+                    --cpu 1 --memory 1.5 \
+                    --registry-login-server techtrackrsea.azurecr.io \
+                    --registry-username $AZURE_CLIENT_ID \
+                    --registry-password $AZURE_CLIENT_SECRET \
+                    --os-type Linux \
+                    --ports 80 \
+                    --dns-name-label techtrackr-qa-dev
+                    '''
+                }
+            }
+        }
     }
     post {
         success {
