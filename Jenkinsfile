@@ -27,7 +27,7 @@ pipeline {
         stage('Deploy to QA') {
             steps {
                 // Use the standard usernamePassword binding
-                withCredentials([usernamePassword(credentialsId: 'techtrackr-azure-sp', 
+                withCredentials([usernamePassword(credentialsId: 'techtrackr-acr-push', 
                                                 passwordVariable: 'AZURE_CLIENT_SECRET', 
                                                 usernameVariable: 'AZURE_CLIENT_ID')]) {
                     sh '''
