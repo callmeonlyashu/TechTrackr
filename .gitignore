@@ -26,5 +26,5 @@ htmlcov/
 .ipynb_checkpoints/
 coverage.xml
 az-cli-*
-
+stop-all-*
     
