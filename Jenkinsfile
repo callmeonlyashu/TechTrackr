@@ -26,27 +26,26 @@ pipeline {
         }
         stage('Deploy to QA') {
             steps {
-                // Use the standard usernamePassword binding
                 withCredentials([usernamePassword(credentialsId: 'techtrackr-acr-push', 
                                                 passwordVariable: 'AZURE_CLIENT_SECRET', 
                                                 usernameVariable: 'AZURE_CLIENT_ID')]) {
-                    sh '''
-                    # Login using the bound variables + your Tenant ID (you can hardcode Tenant ID for now)
-                    az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t <YOUR_TENANT_ID>
+                    sh """
+                    # Login to Azure
+                    az login --service-principal -u ${AZURE_CLIENT_ID} -p ${AZURE_CLIENT_SECRET} -t ${AZURE_TENANT_ID}
                     
-                    # Deploy to ACI
+                    # Deploy to ACI (Note the backslashes at the end of lines to keep it one command)
                     az container create \
                     --resource-group rg-tracktech-qa-001 \
                     --name techtrackr-qa-app \
                     --image techtrackrsea.azurecr.io/techtrackr-app:${BUILD_NUMBER} \
                     --cpu 1 --memory 1.5 \
                     --registry-login-server techtrackrsea.azurecr.io \
-                    --registry-username $AZURE_CLIENT_ID \
-                    --registry-password $AZURE_CLIENT_SECRET \
+                    --registry-username ${AZURE_CLIENT_ID} \
+                    --registry-password ${AZURE_CLIENT_SECRET} \
                     --os-type Linux \
                     --ports 80 \
                     --dns-name-label techtrackr-qa-dev
-                    '''
+                    """
                 }
             }
         }
