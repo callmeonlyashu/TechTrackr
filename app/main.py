@@ -10,6 +10,7 @@ import uvicorn
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.api.v1.monitoring import router as monitoring_router
+from app.api.v1.python_versions import router as python_versions_router
 
 
 # Initialize logging
@@ -82,6 +83,7 @@ async def general_exception_handler(request, exc: Exception):
 
 # Include routers with common API prefix
 app.include_router(monitoring_router, prefix="/api/v1", tags=["Monitoring"])
+app.include_router(python_versions_router, prefix="/api/v1")
 
 
 if __name__ == "__main__":

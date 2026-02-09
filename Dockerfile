@@ -17,4 +17,6 @@ COPY app ./app
 EXPOSE 80
 
 # Run the application
+# Command to run locally
+# uvicorn app.main:app 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
