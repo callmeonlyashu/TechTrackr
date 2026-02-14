@@ -61,23 +61,29 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'techtrackr-acr-push', 
                                                 passwordVariable: 'AZURE_CLIENT_SECRET', 
                                                 usernameVariable: 'AZURE_CLIENT_ID')]) {
-                    sh '''
-                    # 1. Login to Azure
+                    // Adding #!/bin/bash at the top tells Jenkins exactly which shell to use
+                    sh '''#!/bin/bash
+                    # 1. Login
                     az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" -t "$AZURE_TENANT_ID"
                     
-                    # 2. Get AKS Credentials (THIS IS THE NEW PART)
-                    # This tells kubectl how to find and talk to your cluster
+                    # 2. Get AKS Credentials (overwrite to prevent prompt errors)
                     az aks get-credentials --resource-group rg-tracktech-qa-001 --name TechTrackrCluster --overwrite-existing
                     
-                    # 3. Deploy to Kubernetes (The R&D Step)
+                    # 3. Apply the K8s manifest
                     kubectl apply -f deployment.yaml
                     
-                    # 4. Your existing ACI Deployment (Keep for now as a backup)
+                    # 4. Existing ACI Deployment
                     az container create \
-                    --resource-group rg-tracktech-qa-001 \
-                    --name techtrackr-qa-app \
-                    --image ${ACR_SERVER}/${IMAGE_NAME}:${TAG} \
-                    ... (rest of your ACI code)
+                        --resource-group rg-tracktech-qa-001 \
+                        --name techtrackr-qa-app \
+                        --image ${ACR_SERVER}/${IMAGE_NAME}:${TAG} \
+                        --cpu 1 --memory 1.5 \
+                        --registry-login-server ${ACR_SERVER} \
+                        --registry-username "$AZURE_CLIENT_ID" \
+                        --registry-password "$AZURE_CLIENT_SECRET" \
+                        --os-type Linux \
+                        --ports 80 \
+                        --dns-name-label techtrackr-qa-dev
                     '''
                 }
             }
