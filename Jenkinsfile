@@ -24,27 +24,60 @@ pipeline {
                 }
             }
         }
+        stage('Update K8s Manifest') {
+            steps {
+                // This targets the deployment.yaml in your repo's /k8s folder
+                // It replaces the generic 'latest' or a placeholder with the specific build tag
+                sh "sed -i 's|${ACR_SERVER}/${IMAGE_NAME}:latest|${ACR_SERVER}/${IMAGE_NAME}:${TAG}|g' deployment.yaml"
+            }
+        }
+        // stage('Deploy to QA') {
+        //     steps {
+        //         withCredentials([usernamePassword(credentialsId: 'techtrackr-acr-push', 
+        //                                         passwordVariable: 'AZURE_CLIENT_SECRET', 
+        //                                         usernameVariable: 'AZURE_CLIENT_ID')]) {
+        //             sh '''
+        //             # login using the environment variables set by withCredentials
+        //             az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" -t "$AZURE_TENANT_ID"
+                    
+        //             # Deploy to ACI
+        //             az container create \
+        //             --resource-group rg-tracktech-qa-001 \
+        //             --name techtrackr-qa-app \
+        //             --image techtrackrsea.azurecr.io/techtrackr-app:${BUILD_NUMBER} \
+        //             --cpu 1 --memory 1.5 \
+        //             --registry-login-server techtrackrsea.azurecr.io \
+        //             --registry-username "$AZURE_CLIENT_ID" \
+        //             --registry-password "$AZURE_CLIENT_SECRET" \
+        //             --os-type Linux \
+        //             --ports 80 \
+        //             --dns-name-label techtrackr-qa-dev
+        //             '''
+        //         }
+        //     }
+        // }
         stage('Deploy to QA') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'techtrackr-acr-push', 
                                                 passwordVariable: 'AZURE_CLIENT_SECRET', 
                                                 usernameVariable: 'AZURE_CLIENT_ID')]) {
                     sh '''
-                    # login using the environment variables set by withCredentials
+                    # 1. Login to Azure
                     az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" -t "$AZURE_TENANT_ID"
                     
-                    # Deploy to ACI
+                    # 2. Get AKS Credentials (THIS IS THE NEW PART)
+                    # This tells kubectl how to find and talk to your cluster
+                    az aks get-credentials --resource-group rg-tracktech-qa-001 --name TechTrackrCluster --overwrite-existing
+                    
+                    # 3. Deploy to Kubernetes (The R&D Step)
+                    kubectl apply -f deployment.yaml
+                    
+                    # 4. Your existing ACI Deployment (Keep for now as a backup)
                     az container create \
                     --resource-group rg-tracktech-qa-001 \
                     --name techtrackr-qa-app \
-                    --image techtrackrsea.azurecr.io/techtrackr-app:${BUILD_NUMBER} \
-                    --cpu 1 --memory 1.5 \
-                    --registry-login-server techtrackrsea.azurecr.io \
-                    --registry-username "$AZURE_CLIENT_ID" \
-                    --registry-password "$AZURE_CLIENT_SECRET" \
-                    --os-type Linux \
-                    --ports 80 \
-                    --dns-name-label techtrackr-qa-dev
+                    --image ${ACR_SERVER}/${IMAGE_NAME}:${TAG} \
+                    ... (rest of your ACI code)
                     '''
                 }
             }

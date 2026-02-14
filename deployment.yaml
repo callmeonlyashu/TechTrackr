@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: techtrackr-api
+spec:
+  replicas: 1 # Number of Pods to run
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: fastapi-app
+        image: techtrackrsea.azurecr.io/techtrackr-app:latest
+        ports:
+        - containerPort: 8000
