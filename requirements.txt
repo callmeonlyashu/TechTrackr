@@ -12,3 +12,6 @@ httpx==0.28.1
 packaging==25.0
 beautifulsoup4==4.12.2
 python-dateutil==2.8.2
+azure-identity==1.25.2
+azure-keyvault-secrets==4.10.0
+greenlet==3.3.1
