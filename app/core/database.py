@@ -1,5 +1,6 @@
 import asyncio
 import ssl
+import urllib.parse
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -25,11 +26,12 @@ def get_database_url() -> str:
     
     # Remove https:// or trailing slashes that might be in the Vault
     clean_host = db_host.replace("https://", "").replace("http://", "").split("/")[0]
-    
+    safe_user = urllib.parse.quote_plus(db_user)
+    safe_pass = urllib.parse.quote_plus(db_pass)
+
     print(f"DEBUG: Resolving Host: |{clean_host}|")
     
-    return f"postgresql+asyncpg://{db_user}:{db_pass}@{clean_host}:{db_port}/postgres"
-
+    return f"postgresql+asyncpg://{safe_user}:{safe_pass}@{clean_host}:{db_port}/postgres"
 # Setup SSL Context to allow Azure's certificates
 ssl_ctx = ssl.create_default_context()
 ssl_ctx.check_hostname = False
@@ -46,8 +48,10 @@ async def check_db_connection():
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
         print("Success: TechTrackr is connected to Azure Postgres!")
+        return True
     except Exception as e:
         print(f"Connection failed: {e}")
+        return False
 
 if __name__ == "__main__":
     asyncio.run(check_db_connection())
