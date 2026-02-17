@@ -79,10 +79,7 @@ pipeline {
                     --registry-password "$AZURE_CLIENT_SECRET" \
                     --os-type Linux \
                     --ports 80 \
-                    --environment-variables \
-                        AZURE_CLIENT_ID="$AZURE_CLIENT_ID" \
-                        AZURE_CLIENT_SECRET="$AZURE_CLIENT_SECRET" \
-                        AZURE_TENANT_ID="$AZURE_TENANT_ID" \
+                    --environment-variables AZURE_CLIENT_ID="$AZURE_CLIENT_ID" AZURE_CLIENT_SECRET="$AZURE_CLIENT_SECRET" AZURE_TENANT_ID="$AZURE_TENANT_ID" \
                     --dns-name-label techtrackr-qa-dev \
                     --log-analytics-workspace "$LOG_ID" \
                     --log-analytics-workspace-key "$LOG_KEY"
