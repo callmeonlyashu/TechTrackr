@@ -58,21 +58,17 @@ pipeline {
         // }
         stage('Deploy to QA') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'techtrackr-acr-push', 
-                                                passwordVariable: 'AZURE_CLIENT_SECRET', 
-                                                usernameVariable: 'AZURE_CLIENT_ID')]) {
-                    // Adding #!/bin/bash at the top tells Jenkins exactly which shell to use
+                // Wrap everything in one block so all variables are available at once
+                withCredentials([
+                    usernamePassword(credentialsId: 'techtrackr-acr-push', passwordVariable: 'AZURE_CLIENT_SECRET', usernameVariable: 'AZURE_CLIENT_ID'),
+                    string(credentialsId: 'AZURE_LOG_WORKSPACE_KEY', variable: 'LOG_KEY'),
+                    string(credentialsId: 'AZURE_LOG_WORKSPACE_ID', variable: 'LOG_ID') 
+                ]) {
                     sh '''#!/bin/bash
                     # 1. Login
                     az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" -t "$AZURE_TENANT_ID"
                     
-                    # 2. Get AKS Credentials (overwrite to prevent prompt errors)
-                    az aks get-credentials --resource-group rg-tracktech-qa-001 --name TechTrackrCluster --overwrite-existing
-                    
-                    # 3. Apply the K8s manifest
-                    kubectl apply -f deployment.yaml
-                    
-                    # 4. Existing ACI Deployment
+                    # 2. Deploy to ACI with BOTH Port 80 and Logging
                     az container create \
                         --resource-group rg-tracktech-qa-001 \
                         --name techtrackr-qa-app \
@@ -83,7 +79,9 @@ pipeline {
                         --registry-password "$AZURE_CLIENT_SECRET" \
                         --os-type Linux \
                         --ports 80 \
-                        --dns-name-label techtrackr-qa-dev
+                        --dns-name-label techtrackr-qa-dev \
+                        --log-analytics-workspace "$LOG_ID" \
+                        --log-analytics-workspace-key "$LOG_KEY"
                     '''
                 }
             }
